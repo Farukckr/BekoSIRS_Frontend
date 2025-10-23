@@ -1,19 +1,32 @@
-import { Stack, SplashScreen } from 'expo-router';
-import { AuthProvider } from '../context/AuthContext';
-import { useEffect } from 'react';
+// app/_layout.tsx
+import React from 'react';
+import { Stack, useSegments } from 'expo-router';
+import AppLayout from '../components/AppLayout';
 
-export default function RootLayout() {
-  useEffect(() => {
-    // Bu, açılış ekranının hemen kaybolmasını önler
-    SplashScreen.hideAsync();
-  }, []);
+export default function Layout() {
+  const segments = useSegments(); // mevcut route path’ini verir
+  const current = segments[0];    // örneğin "login", "products" gibi
 
-  return (
-    <AuthProvider>
+  // Eğer login veya register sayfasındaysa AppLayout göstermeyelim
+  const isAuthPage = current === 'login' || current === 'register';
+
+  if (isAuthPage) {
+    return (
       <Stack>
-        <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-        <Stack.Screen name="register" options={{ presentation: 'modal', title: 'Kayıt Ol' }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="register" options={{ headerShown: false }} />
       </Stack>
-    </AuthProvider>
+    );
+  }
+
+  // 🔹 Diğer tüm sayfalar (örnek: products, my-products, settings...) AppLayout içinde gözüksün
+  return (
+    <AppLayout title="BekoSIRS">
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="products" />
+        <Stack.Screen name="my-products" />
+        <Stack.Screen name="settings" />
+      </Stack>
+    </AppLayout>
   );
 }

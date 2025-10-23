@@ -1,74 +1,245 @@
-// components/MyProductCard.tsx
-
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
-// Gelen 'ownership' prop'unun tipini tanımlıyoruz.
-// Bu, kodun daha okunaklı ve hatasız olmasını sağlar.
-interface OwnershipProps {
-  ownership: {
+interface Product {
+  id: number;
+  name: string;
+  brand: string;
+  price: string;
+  image: string;
+  category: {
     id: number;
-    purchase_date: string;
-    warranty_end_date: string;
-    product: {
-      name: string;
-      image_url?: string;
-    };
-  };
+    name: string;
+  } | null;
+  status: string;
+  description: string;
 }
 
-export const MyProductCard: React.FC<OwnershipProps> = ({ ownership }) => {
-    // Tarih formatlama fonksiyonu
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' });
+interface MyProductCardProps {
+  product: Product;
+  onPress?: () => void;
+}
+
+const MyProductCard: React.FC<MyProductCardProps> = ({ product, onPress }) => {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'in_stock':
+        return '#10B981';
+      case 'delivered':
+        return '#3B82F6';
+      case 'out_of_stock':
+        return '#EF4444';
+      default:
+        return '#6B7280';
     }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'in_stock':
+        return 'Stokta';
+      case 'delivered':
+        return 'Teslim Edildi';
+      case 'out_of_stock':
+        return 'Stok Yok';
+      default:
+        return 'Bilinmiyor';
+    }
+  };
 
   return (
-    <View style={styles.card}>
-      {ownership.product.image_url && <Image source={{ uri: ownership.product.image_url }} style={styles.image} />}
-      <View style={styles.infoContainer}>
-        <Text style={styles.name}>{ownership.product.name}</Text>
-        <Text style={styles.dateText}>Satın Alma: {formatDate(ownership.purchase_date)}</Text>
-        <Text style={styles.warranty}>Garanti Bitişi: {formatDate(ownership.warranty_end_date)}</Text>
+    <TouchableOpacity 
+      style={styles.card} 
+      activeOpacity={0.7}
+      onPress={onPress}
+    >
+      {/* Product Image */}
+      <View style={styles.imageContainer}>
+        {product.image ? (
+          <Image
+            source={{ uri: `http://192.168.0.109:8000${product.image}` }}
+            style={styles.productImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Text style={styles.placeholderText}>📦</Text>
+          </View>
+        )}
+        
+        {/* Status Badge */}
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: getStatusColor(product.status) },
+          ]}
+        >
+          <Text style={styles.statusText}>{getStatusText(product.status)}</Text>
+        </View>
       </View>
-    </View>
+
+      {/* Product Info */}
+      <View style={styles.productInfo}>
+        {/* Category */}
+        {product.category && (
+          <View style={styles.categoryContainer}>
+            <Text style={styles.categoryIcon}>🏷️</Text>
+            <Text style={styles.categoryText}>{product.category.name}</Text>
+          </View>
+        )}
+
+        {/* Product Name */}
+        <Text style={styles.productName} numberOfLines={2}>
+          {product.name}
+        </Text>
+
+        {/* Brand */}
+        {product.brand && (
+          <Text style={styles.brandText}>Marka: {product.brand}</Text>
+        )}
+
+        {/* Price */}
+        {product.price && (
+          <View style={styles.priceContainer}>
+            <Text style={styles.priceText}>{product.price}₺</Text>
+            <View style={styles.priceBadge}>
+              <Text style={styles.priceBadgeText}>KDV Dahil</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Description */}
+        {product.description && (
+          <Text style={styles.descriptionText} numberOfLines={2}>
+            {product.description}
+          </Text>
+        )}
+
+        {/* Action Button */}
+        <TouchableOpacity style={styles.detailButton}>
+          <Text style={styles.detailButtonText}>Detayları Gör</Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
   );
 };
 
-// Sadece bu component'in ihtiyaç duyduğu stiller
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: 'white',
-        borderRadius: 12,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 5,
-        overflow: 'hidden',
-    },
-    image: {
-        width: '100%',
-        height: 200,
-        backgroundColor: '#eee',
-    },
-    infoContainer: {
-        padding: 15,
-    },
-    name: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 8,
-    },
-    dateText: {
-        fontSize: 14,
-        color: 'gray',
-    },
-    warranty: {
-        marginTop: 5,
-        fontSize: 15,
-        fontWeight: 'bold',
-        color: '#d32f2f'
-    }
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  imageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 200,
+    backgroundColor: '#F3F4F6',
+  },
+  productImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#E5E7EB',
+  },
+  placeholderText: {
+    fontSize: 48,
+  },
+  statusBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  statusText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  productInfo: {
+    padding: 16,
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  categoryIcon: {
+    fontSize: 14,
+    marginRight: 4,
+  },
+  categoryText: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  productName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 8,
+    lineHeight: 24,
+  },
+  brandText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 12,
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  priceText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginRight: 8,
+  },
+  priceBadge: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  priceBadgeText: {
+    fontSize: 10,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  detailButton: {
+    backgroundColor: '#000000',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  detailButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
+
+export default MyProductCard;
